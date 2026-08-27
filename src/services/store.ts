@@ -4,13 +4,15 @@ import { burgerConstructorSlice } from './slices/burgerConstructorSlice';
 import { orderSlice } from './slices/orderSlice';
 import { feedSlice } from './slices/feedSlice';
 import { userSlice } from './slices/userSlice';
+import { profileOrdersSlice } from './slices/profileOrdersSlice';
 
 const rootReducer = combineSlices(
   ingredientsSlice,
   burgerConstructorSlice,
   orderSlice,
   feedSlice,
-  userSlice
+  userSlice,
+  profileOrdersSlice
 );
 
 export const store = configureStore({
