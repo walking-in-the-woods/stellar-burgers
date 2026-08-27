@@ -1,5 +1,10 @@
 import { FC, ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
+import { useSelector } from '../../services/hooks';
+import {
+  isAuthCheckedSelector,
+  userSelector
+} from '../../services/slices/userSlice';
 
 type TProtectedRouteProps = {
   onlyUnAuth?: boolean;
@@ -10,9 +15,8 @@ export const ProtectedRoute: FC<TProtectedRouteProps> = ({
   onlyUnAuth = false,
   children
 }) => {
-  // Временная заглушка, позже заменим на реальную проверку авторизации
-  const isAuthChecked = true;
-  const user = null;
+  const isAuthChecked = useSelector(isAuthCheckedSelector);
+  const user = useSelector(userSelector);
   const location = useLocation();
 
   if (!isAuthChecked) {
