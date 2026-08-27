@@ -83,12 +83,21 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, './dist'),
-    filename: 'bundle.js'
+    filename: 'bundle.js',
+    publicPath: '/' // <-- ВАЖНО: абсолютный путь для статики
   },
   devServer: {
-    static: path.join(__dirname, './dist'),
+    static: {
+      directory: path.join(__dirname, './dist')
+    },
     compress: true,
-    historyApiFallback: true,
+    historyApiFallback: {
+      // Перенаправляем все запросы, кроме статических файлов, на index.html
+      rewrites: [
+        { from: /\.[a-zA-Z0-9]+$/, to: '/' } // файлы с расширением – отдаём как есть
+      ],
+      index: '/index.html' // если файл не найден – отдаём index.html
+    },
     port: 4000,
     open: true
   }
