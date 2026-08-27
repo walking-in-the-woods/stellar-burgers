@@ -13,6 +13,7 @@ import {
   clearOrderDetails
 } from '../../services/slices/orderDetailsSlice';
 import { useParams } from 'react-router-dom';
+import { getIngredientsWithCount, formatDate } from '../../utils/order-helpers';
 
 export const OrderInfo: FC = () => {
   const { number } = useParams<{ number: string }>();
@@ -61,24 +62,12 @@ export const OrderInfo: FC = () => {
   const orderInfo = useMemo(() => {
     if (!orderData || !allIngredients.length) return null;
 
-    const date = new Date(orderData.createdAt);
-    const ingredientsInfo: { [key: string]: TIngredient & { count: number } } =
-      {};
-    orderData.ingredients.forEach((item) => {
-      const ingredient = allIngredients.find((ing) => ing._id === item);
-      if (ingredient) {
-        if (ingredientsInfo[item]) {
-          ingredientsInfo[item].count++;
-        } else {
-          ingredientsInfo[item] = { ...ingredient, count: 1 };
-        }
-      }
-    });
-
+    const ingredientsInfo = getIngredientsWithCount(orderData, allIngredients);
     const total = Object.values(ingredientsInfo).reduce(
       (acc, item) => acc + item.price * item.count,
       0
     );
+    const date = formatDate(orderData.createdAt);
 
     return {
       ...orderData,

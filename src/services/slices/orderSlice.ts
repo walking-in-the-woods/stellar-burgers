@@ -1,12 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { orderBurgerApi } from '@api';
-import { TOrder } from '@utils-types';
+import { TOrder, TRequestState } from '@utils-types';
 
-type TOrderState = {
+type TOrderState = TRequestState & {
   orderRequest: boolean;
   orderModalData: TOrder | null;
-  loading: boolean;
-  error: string | null;
 };
 
 const initialState: TOrderState = {
@@ -20,7 +18,6 @@ export const createOrder = createAsyncThunk<TOrder, string[]>(
   'order/create',
   async (data: string[]) => {
     const res = await orderBurgerApi(data);
-    // Приводим к типу TOrder, добавляя поле ingredients
     return {
       ...res.order,
       ingredients: []

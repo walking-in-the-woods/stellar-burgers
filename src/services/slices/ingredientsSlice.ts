@@ -1,11 +1,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { getIngredientsApi } from '@api';
-import { TIngredient } from '@utils-types';
+import { TIngredient, TRequestState } from '@utils-types';
 
-type TIngredientsState = {
+type TIngredientsState = TRequestState & {
   ingredients: TIngredient[];
-  loading: boolean;
-  error: string | null;
 };
 
 const initialState: TIngredientsState = {
