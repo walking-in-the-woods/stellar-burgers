@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import {
   loginUserApi,
   registerUserApi,
@@ -11,7 +11,7 @@ import {
   TLoginData
 } from '@api';
 import { TUser } from '@utils-types';
-import { setCookie, deleteCookie, getCookie } from '../../utils/cookie';
+import { setCookie, deleteCookie } from '../../utils/cookie';
 
 type TUserState = {
   isAuthChecked: boolean;
@@ -45,7 +45,6 @@ const initialState: TUserState = {
   resetPasswordError: null
 };
 
-// Thunk для регистрации
 export const registerUser = createAsyncThunk(
   'user/register',
   async (data: TRegisterData) => {
@@ -56,7 +55,6 @@ export const registerUser = createAsyncThunk(
   }
 );
 
-// Thunk для входа
 export const loginUser = createAsyncThunk(
   'user/login',
   async (data: TLoginData) => {
@@ -67,13 +65,11 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// Thunk для получения данных пользователя (проверка авторизации)
 export const getUser = createAsyncThunk('user/get', async () => {
   const res = await getUserApi();
   return res.user;
 });
 
-// Thunk для обновления данных пользователя
 export const updateUser = createAsyncThunk(
   'user/update',
   async (data: Partial<TRegisterData>) => {
@@ -82,14 +78,12 @@ export const updateUser = createAsyncThunk(
   }
 );
 
-// Thunk для выхода
 export const logoutUser = createAsyncThunk('user/logout', async () => {
   await logoutApi();
   deleteCookie('accessToken');
   localStorage.removeItem('refreshToken');
 });
 
-// Thunk для забытого пароля
 export const forgotPassword = createAsyncThunk(
   'user/forgotPassword',
   async (data: { email: string }) => {
@@ -97,7 +91,6 @@ export const forgotPassword = createAsyncThunk(
   }
 );
 
-// Thunk для сброса пароля
 export const resetPassword = createAsyncThunk(
   'user/resetPassword',
   async (data: { password: string; token: string }) => {
@@ -133,7 +126,6 @@ export const userSlice = createSlice({
     resetPasswordErrorSelector: (state) => state.resetPasswordError
   },
   extraReducers: (builder) => {
-    // Регистрация
     builder
       .addCase(registerUser.pending, (state) => {
         state.registerUserRequest = true;
@@ -148,10 +140,7 @@ export const userSlice = createSlice({
         state.user = action.payload;
         state.isAuthenticated = true;
         state.isAuthChecked = true;
-      });
-
-    // Вход
-    builder
+      })
       .addCase(loginUser.pending, (state) => {
         state.loginUserRequest = true;
         state.loginUserError = null;
@@ -166,13 +155,8 @@ export const userSlice = createSlice({
         state.user = action.payload;
         state.isAuthenticated = true;
         state.isAuthChecked = true;
-      });
-
-    // Получение пользователя
-    builder
-      .addCase(getUser.pending, (state) => {
-        // Можно добавить флаг загрузки, но мы используем isAuthChecked
       })
+      .addCase(getUser.pending, (state) => {})
       .addCase(getUser.rejected, (state) => {
         state.isAuthChecked = true;
         state.isAuthenticated = false;
@@ -182,10 +166,7 @@ export const userSlice = createSlice({
         state.isAuthChecked = true;
         state.isAuthenticated = true;
         state.user = action.payload;
-      });
-
-    // Обновление пользователя
-    builder
+      })
       .addCase(updateUser.pending, (state) => {
         state.updateUserRequest = true;
         state.updateUserError = null;
@@ -197,17 +178,12 @@ export const userSlice = createSlice({
       .addCase(updateUser.fulfilled, (state, action) => {
         state.updateUserRequest = false;
         state.user = action.payload;
-      });
-
-    // Выход
-    builder.addCase(logoutUser.fulfilled, (state) => {
-      state.user = null;
-      state.isAuthenticated = false;
-      state.isAuthChecked = true;
-    });
-
-    // Забытый пароль
-    builder
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.user = null;
+        state.isAuthenticated = false;
+        state.isAuthChecked = true;
+      })
       .addCase(forgotPassword.pending, (state) => {
         state.forgotPasswordRequest = true;
         state.forgotPasswordError = null;
@@ -219,10 +195,7 @@ export const userSlice = createSlice({
       })
       .addCase(forgotPassword.fulfilled, (state) => {
         state.forgotPasswordRequest = false;
-      });
-
-    // Сброс пароля
-    builder
+      })
       .addCase(resetPassword.pending, (state) => {
         state.resetPasswordRequest = true;
         state.resetPasswordError = null;

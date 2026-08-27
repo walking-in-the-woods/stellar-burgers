@@ -5,20 +5,26 @@ import { TOrder } from '@utils-types';
 type TOrderState = {
   orderRequest: boolean;
   orderModalData: TOrder | null;
+  loading: boolean;
   error: string | null;
 };
 
 const initialState: TOrderState = {
   orderRequest: false,
   orderModalData: null,
+  loading: false,
   error: null
 };
 
-export const createOrder = createAsyncThunk(
+export const createOrder = createAsyncThunk<TOrder, string[]>(
   'order/create',
   async (data: string[]) => {
     const res = await orderBurgerApi(data);
-    return res.order;
+    // Приводим к типу TOrder, добавляя поле ingredients
+    return {
+      ...res.order,
+      ingredients: []
+    } as TOrder;
   }
 );
 
@@ -40,14 +46,17 @@ export const orderSlice = createSlice({
     builder
       .addCase(createOrder.pending, (state) => {
         state.orderRequest = true;
+        state.loading = true;
         state.error = null;
       })
       .addCase(createOrder.rejected, (state, action) => {
         state.orderRequest = false;
+        state.loading = false;
         state.error = action.error.message || 'Ошибка создания заказа';
       })
       .addCase(createOrder.fulfilled, (state, action) => {
         state.orderRequest = false;
+        state.loading = false;
         state.orderModalData = action.payload;
       });
   }
