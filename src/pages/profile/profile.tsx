@@ -4,14 +4,12 @@ import { useSelector, useDispatch } from '../../services/hooks';
 import {
   userSelector,
   updateUser,
-  updateUserRequestSelector,
   updateUserErrorSelector
 } from '../../services/slices/userSlice';
 
 export const Profile: FC = () => {
   const dispatch = useDispatch();
   const user = useSelector(userSelector);
-  const updateUserRequest = useSelector(updateUserRequestSelector);
   const updateUserError = useSelector(updateUserErrorSelector);
 
   const [formValue, setFormValue] = useState({
@@ -20,7 +18,6 @@ export const Profile: FC = () => {
     password: ''
   });
 
-  // Заполняем форму при загрузке пользователя
   useEffect(() => {
     if (user) {
       setFormValue({
@@ -31,7 +28,6 @@ export const Profile: FC = () => {
     }
   }, [user]);
 
-  // Проверяем, были ли изменены данные
   const isFormChanged =
     formValue.name !== user?.name ||
     formValue.email !== user?.email ||

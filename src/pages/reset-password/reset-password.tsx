@@ -4,7 +4,6 @@ import { ResetPasswordUI } from '@ui-pages';
 import { useDispatch, useSelector } from '../../services/hooks';
 import {
   resetPassword,
-  resetPasswordRequestSelector,
   resetPasswordErrorSelector
 } from '../../services/slices/userSlice';
 
@@ -14,7 +13,6 @@ export const ResetPassword: FC = () => {
   const [password, setPassword] = useState('');
   const [token, setToken] = useState('');
 
-  const resetPasswordRequest = useSelector(resetPasswordRequestSelector);
   const resetPasswordError = useSelector(resetPasswordErrorSelector);
 
   const handleSubmit = (e: SyntheticEvent) => {

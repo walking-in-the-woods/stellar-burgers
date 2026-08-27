@@ -24,7 +24,6 @@ export const OrderInfo: FC = () => {
   const orderDetailsLoading = useSelector(orderDetailsLoadingSelector);
   const orderDetailsError = useSelector(orderDetailsErrorSelector);
 
-  // Сначала ищем заказ в ленте, если нет – в деталях
   const orderData = useMemo(() => {
     if (!number) return null;
     const num = Number(number);
@@ -34,7 +33,6 @@ export const OrderInfo: FC = () => {
     return null;
   }, [number, feedOrders, orderDetails]);
 
-  // Если заказ не найден и нет загрузки и нет ошибки – запрашиваем
   useEffect(() => {
     if (!number) return;
     const num = Number(number);
@@ -55,7 +53,6 @@ export const OrderInfo: FC = () => {
     dispatch
   ]);
 
-  // Очищаем детали при размонтировании
   // eslint-disable-next-line arrow-body-style
   useEffect(() => () => void dispatch(clearOrderDetails()), [dispatch]);
 

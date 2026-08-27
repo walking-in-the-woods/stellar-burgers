@@ -4,7 +4,6 @@ import { ForgotPasswordUI } from '@ui-pages';
 import { useDispatch, useSelector } from '../../services/hooks';
 import {
   forgotPassword,
-  forgotPasswordRequestSelector,
   forgotPasswordErrorSelector
 } from '../../services/slices/userSlice';
 
@@ -13,7 +12,6 @@ export const ForgotPassword: FC = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
 
-  const forgotPasswordRequest = useSelector(forgotPasswordRequestSelector);
   const forgotPasswordError = useSelector(forgotPasswordErrorSelector);
 
   const handleSubmit = (e: SyntheticEvent) => {

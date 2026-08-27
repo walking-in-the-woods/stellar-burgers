@@ -38,9 +38,6 @@ export const BurgerConstructor: FC = () => {
 
   const closeOrderModal = () => {
     dispatch(clearConstructor());
-    // Очищаем данные заказа
-    // В слайсе orderSlice добавим экшен clearOrderData
-    // dispatch(clearOrderData());
   };
 
   const price = useMemo(() => {

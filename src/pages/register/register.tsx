@@ -3,7 +3,6 @@ import { RegisterUI } from '@ui-pages';
 import { useDispatch, useSelector } from '../../services/hooks';
 import {
   registerUser,
-  registerUserRequestSelector,
   registerUserErrorSelector
 } from '../../services/slices/userSlice';
 import { useNavigate } from 'react-router-dom';
@@ -15,7 +14,6 @@ export const Register: FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const registerUserRequest = useSelector(registerUserRequestSelector);
   const registerUserError = useSelector(registerUserErrorSelector);
 
   const handleSubmit = (e: SyntheticEvent) => {

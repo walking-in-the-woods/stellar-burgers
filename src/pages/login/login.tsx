@@ -3,7 +3,6 @@ import { LoginUI } from '@ui-pages';
 import { useDispatch, useSelector } from '../../services/hooks';
 import {
   loginUser,
-  loginUserRequestSelector,
   loginUserErrorSelector
 } from '../../services/slices/userSlice';
 import { useNavigate } from 'react-router-dom';
@@ -14,7 +13,6 @@ export const Login: FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const loginUserRequest = useSelector(loginUserRequestSelector);
   const loginUserError = useSelector(loginUserErrorSelector);
 
   const handleSubmit = (e: SyntheticEvent) => {
