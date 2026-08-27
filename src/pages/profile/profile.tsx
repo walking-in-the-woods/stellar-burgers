@@ -20,6 +20,7 @@ export const Profile: FC = () => {
     password: ''
   });
 
+  // Заполняем форму при загрузке пользователя
   useEffect(() => {
     if (user) {
       setFormValue({
@@ -30,6 +31,7 @@ export const Profile: FC = () => {
     }
   }, [user]);
 
+  // Проверяем, были ли изменены данные
   const isFormChanged =
     formValue.name !== user?.name ||
     formValue.email !== user?.email ||
@@ -41,6 +43,7 @@ export const Profile: FC = () => {
     if (formValue.name !== user?.name) data.name = formValue.name;
     if (formValue.email !== user?.email) data.email = formValue.email;
     if (formValue.password) data.password = formValue.password;
+
     if (Object.keys(data).length > 0) {
       dispatch(updateUser(data));
     }
