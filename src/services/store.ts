@@ -5,6 +5,7 @@ import { orderSlice } from './slices/orderSlice';
 import { feedSlice } from './slices/feedSlice';
 import { userSlice } from './slices/userSlice';
 import { profileOrdersSlice } from './slices/profileOrdersSlice';
+import { orderDetailsSlice } from './slices/orderDetailsSlice';
 
 const rootReducer = combineSlices(
   ingredientsSlice,
@@ -12,7 +13,8 @@ const rootReducer = combineSlices(
   orderSlice,
   feedSlice,
   userSlice,
-  profileOrdersSlice
+  profileOrdersSlice,
+  orderDetailsSlice
 );
 
 export const store = configureStore({

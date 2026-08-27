@@ -1,31 +1,71 @@
-import { FC, useMemo } from 'react';
+import { FC, useMemo, useEffect } from 'react';
 import { Preloader } from '../ui/preloader';
 import { OrderInfoUI } from '../ui/order-info';
 import { TIngredient } from '@utils-types';
-import { useSelector } from '../../services/hooks';
+import { useSelector, useDispatch } from '../../services/hooks';
 import { ingredientsSelector } from '../../services/slices/ingredientsSlice';
-import { useParams } from 'react-router-dom';
 import { feedOrdersSelector } from '../../services/slices/feedSlice';
+import {
+  fetchOrderByNumber,
+  orderDetailsSelector,
+  orderDetailsLoadingSelector,
+  orderDetailsErrorSelector,
+  clearOrderDetails
+} from '../../services/slices/orderDetailsSlice';
+import { useParams } from 'react-router-dom';
 
 export const OrderInfo: FC = () => {
   const { number } = useParams<{ number: string }>();
-  const ingredients = useSelector(ingredientsSelector);
-  const orders = useSelector(feedOrdersSelector);
+  const dispatch = useDispatch();
+  const allIngredients = useSelector(ingredientsSelector);
+  const feedOrders = useSelector(feedOrdersSelector);
+  const orderDetails = useSelector(orderDetailsSelector);
+  const orderDetailsLoading = useSelector(orderDetailsLoadingSelector);
+  const orderDetailsError = useSelector(orderDetailsErrorSelector);
 
+  // Сначала ищем заказ в ленте, если нет – в деталях
   const orderData = useMemo(() => {
     if (!number) return null;
-    return orders.find((order) => order.number === Number(number)) || null;
-  }, [number, orders]);
+    const num = Number(number);
+    const fromFeed = feedOrders.find((order) => order.number === num);
+    if (fromFeed) return fromFeed;
+    if (orderDetails && orderDetails.number === num) return orderDetails;
+    return null;
+  }, [number, feedOrders, orderDetails]);
+
+  // Если заказ не найден и нет загрузки и нет ошибки – запрашиваем
+  useEffect(() => {
+    if (!number) return;
+    const num = Number(number);
+    const existsInFeed = feedOrders.some((order) => order.number === num);
+    const existsInDetails = orderDetails && orderDetails.number === num;
+
+    if (existsInFeed || existsInDetails) return;
+    if (orderDetailsLoading || orderDetailsError) return;
+
+    console.log(`[OrderInfo] Fetching order #${num}`);
+    dispatch(fetchOrderByNumber(num));
+  }, [
+    number,
+    feedOrders,
+    orderDetails,
+    orderDetailsLoading,
+    orderDetailsError,
+    dispatch
+  ]);
+
+  // Очищаем детали при размонтировании
+  // eslint-disable-next-line arrow-body-style
+  useEffect(() => () => void dispatch(clearOrderDetails()), [dispatch]);
 
   const orderInfo = useMemo(() => {
-    if (!orderData || !ingredients.length) return null;
+    if (!orderData || !allIngredients.length) return null;
 
     const date = new Date(orderData.createdAt);
-
     const ingredientsInfo: { [key: string]: TIngredient & { count: number } } =
       {};
     orderData.ingredients.forEach((item) => {
-      const ingredient = ingredients.find((ing) => ing._id === item);
+      const ingredient = allIngredients.find((ing) => ing._id === item);
       if (ingredient) {
         if (ingredientsInfo[item]) {
           ingredientsInfo[item].count++;
@@ -46,9 +86,25 @@ export const OrderInfo: FC = () => {
       date,
       total
     };
-  }, [orderData, ingredients]);
+  }, [orderData, allIngredients]);
 
-  if (!orderInfo) {
+  if (orderDetailsError) {
+    return (
+      <div className='text text_type_main-medium pt-4' style={{ color: 'red' }}>
+        Ошибка загрузки заказа: {orderDetailsError}
+      </div>
+    );
+  }
+
+  if (!orderData && !orderDetailsLoading) {
+    return (
+      <div className='text text_type_main-medium pt-4'>
+        Заказ с номером #{number} не найден
+      </div>
+    );
+  }
+
+  if (orderDetailsLoading || !allIngredients.length || !orderInfo) {
     return <Preloader />;
   }
 
