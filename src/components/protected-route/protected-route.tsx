@@ -5,6 +5,8 @@ import {
   isAuthCheckedSelector,
   userSelector
 } from '../../services/slices/userSlice';
+import { Preloader } from '@ui';
+import { LocationState } from '../../utils/types';
 
 type TProtectedRouteProps = {
   onlyUnAuth?: boolean;
@@ -18,9 +20,10 @@ export const ProtectedRoute: FC<TProtectedRouteProps> = ({
   const isAuthChecked = useSelector(isAuthCheckedSelector);
   const user = useSelector(userSelector);
   const location = useLocation();
+  const state = location.state as LocationState;
 
   if (!isAuthChecked) {
-    return null;
+    return <Preloader />;
   }
 
   if (!onlyUnAuth && !user) {
@@ -28,7 +31,7 @@ export const ProtectedRoute: FC<TProtectedRouteProps> = ({
   }
 
   if (onlyUnAuth && user) {
-    const from = location.state?.from || { pathname: '/' };
+    const from = state?.from || { pathname: '/' };
     return <Navigate to={from} replace />;
   }
 

@@ -5,6 +5,7 @@ import { TIngredient } from '@utils-types';
 import { useSelector, useDispatch } from '../../services/hooks';
 import { ingredientsSelector } from '../../services/slices/ingredientsSlice';
 import { feedOrdersSelector } from '../../services/slices/feedSlice';
+import { profileOrdersSelector } from '../../services/slices/profileOrdersSlice';
 import {
   fetchOrderByNumber,
   orderDetailsSelector,
@@ -20,6 +21,7 @@ export const OrderInfo: FC = () => {
   const dispatch = useDispatch();
   const allIngredients = useSelector(ingredientsSelector);
   const feedOrders = useSelector(feedOrdersSelector);
+  const profileOrders = useSelector(profileOrdersSelector);
   const orderDetails = useSelector(orderDetailsSelector);
   const orderDetailsLoading = useSelector(orderDetailsLoadingSelector);
   const orderDetailsError = useSelector(orderDetailsErrorSelector);
@@ -29,24 +31,27 @@ export const OrderInfo: FC = () => {
     const num = Number(number);
     const fromFeed = feedOrders.find((order) => order.number === num);
     if (fromFeed) return fromFeed;
+    const fromProfile = profileOrders.find((order) => order.number === num);
+    if (fromProfile) return fromProfile;
     if (orderDetails && orderDetails.number === num) return orderDetails;
     return null;
-  }, [number, feedOrders, orderDetails]);
+  }, [number, feedOrders, profileOrders, orderDetails]);
 
   useEffect(() => {
     if (!number) return;
     const num = Number(number);
     const existsInFeed = feedOrders.some((order) => order.number === num);
+    const existsInProfile = profileOrders.some((order) => order.number === num);
     const existsInDetails = orderDetails && orderDetails.number === num;
 
-    if (existsInFeed || existsInDetails) return;
+    if (existsInFeed || existsInProfile || existsInDetails) return;
     if (orderDetailsLoading || orderDetailsError) return;
 
-    console.log(`[OrderInfo] Fetching order #${num}`);
     dispatch(fetchOrderByNumber(num));
   }, [
     number,
     feedOrders,
+    profileOrders,
     orderDetails,
     orderDetailsLoading,
     orderDetailsError,

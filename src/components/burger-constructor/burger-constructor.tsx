@@ -9,7 +9,8 @@ import {
 import {
   orderRequestSelector,
   orderModalDataSelector,
-  createOrder
+  createOrder,
+  clearOrderData
 } from '../../services/slices/orderSlice';
 import { useNavigate } from 'react-router-dom';
 import { isAuthenticatedSelector } from '../../services/slices/userSlice';
@@ -33,11 +34,16 @@ export const BurgerConstructor: FC = () => {
       ...constructorItems.ingredients.map((i) => i._id),
       constructorItems.bun._id
     ];
-    dispatch(createOrder(ingredientsIds));
+    dispatch(createOrder(ingredientsIds))
+      .unwrap()
+      .then(() => {
+        dispatch(clearConstructor());
+      })
+      .catch(() => {});
   };
 
   const closeOrderModal = () => {
-    dispatch(clearConstructor());
+    dispatch(clearOrderData());
   };
 
   const price = useMemo(() => {

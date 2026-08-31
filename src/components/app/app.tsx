@@ -14,14 +14,14 @@ import { ProtectedRoute } from '../protected-route';
 import { useLocation, useNavigate, Routes, Route } from 'react-router-dom';
 import { useSelector, useDispatch } from '../../services/hooks';
 import { fetchIngredients } from '../../services/slices/ingredientsSlice';
-import { getUser, setAuthChecked } from '../../services/slices/userSlice';
-import { getCookie } from '../../utils/cookie';
+import { getUser } from '../../services/slices/userSlice';
 import {
   ingredientsLoadingSelector,
   ingredientsSelector,
   errorSelector
 } from '../../services/slices/ingredientsSlice';
 import { Preloader } from '@ui';
+import { LocationState } from '../../utils/types';
 import '../../index.css';
 import styles from './app.module.css';
 import { useEffect } from 'react';
@@ -30,7 +30,7 @@ const App = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const background = location.state?.background;
+  const background = (location.state as LocationState)?.background;
 
   const isLoading = useSelector(ingredientsLoadingSelector);
   const ingredients = useSelector(ingredientsSelector);
@@ -38,11 +38,7 @@ const App = () => {
 
   useEffect(() => {
     dispatch(fetchIngredients());
-    if (getCookie('accessToken')) {
-      dispatch(getUser());
-    } else {
-      dispatch(setAuthChecked(true));
-    }
+    dispatch(getUser());
   }, [dispatch]);
 
   const handleModalClose = () => {

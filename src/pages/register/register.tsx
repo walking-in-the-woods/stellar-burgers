@@ -5,11 +5,9 @@ import {
   registerUser,
   registerUserErrorSelector
 } from '../../services/slices/userSlice';
-import { useNavigate } from 'react-router-dom';
 
 export const Register: FC = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const [userName, setUserName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,9 +18,7 @@ export const Register: FC = () => {
     e.preventDefault();
     dispatch(registerUser({ name: userName, email, password }))
       .unwrap()
-      .then(() => {
-        navigate('/');
-      });
+      .catch(() => {});
   };
 
   return (

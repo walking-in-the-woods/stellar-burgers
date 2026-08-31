@@ -5,11 +5,9 @@ import {
   loginUser,
   loginUserErrorSelector
 } from '../../services/slices/userSlice';
-import { useNavigate } from 'react-router-dom';
 
 export const Login: FC = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -19,9 +17,7 @@ export const Login: FC = () => {
     e.preventDefault();
     dispatch(loginUser({ email, password }))
       .unwrap()
-      .then(() => {
-        navigate('/');
-      });
+      .catch(() => {});
   };
 
   return (
