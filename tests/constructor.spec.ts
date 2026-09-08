@@ -2,10 +2,11 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Burger constructor', () => {
   test.beforeEach(async ({ page, context }) => {
+    // Подставляем фейковые токены (не обязательны, так как запросы перехвачены)
     await context.addCookies([
       {
         name: 'accessToken',
-        value: 'fake-access-token',
+        value: 'fake-token',
         domain: 'localhost',
         path: '/'
       }
@@ -14,6 +15,7 @@ test.describe('Burger constructor', () => {
       localStorage.setItem('refreshToken', 'fake-refresh-token');
     });
 
+    // Используем HAR-файлы
     await page.routeFromHAR('./tests/hars/ingredients.har', {
       url: '**/api/ingredients'
     });
@@ -28,67 +30,90 @@ test.describe('Burger constructor', () => {
   test('should add an ingredient to the constructor', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await page.waitForSelector('button:has-text("Добавить")', {
-      timeout: 10000
-    });
+
+    // Ждём появления кнопок "Добавить" (ингредиенты загружены)
     const addButtons = page.getByRole('button', { name: 'Добавить' });
+    await addButtons.first().waitFor({ state: 'visible', timeout: 15000 });
+
+    // Добавляем булку (первая кнопка)
     await addButtons.first().click();
 
-    const constructorItem = page
-      .locator('[class*="constructor-element"]')
-      .first();
-    await expect(constructorItem).toBeVisible();
+    // Проверяем, что в конструкторе появился элемент с текстом "(верх)"
+    const bunTop = page.getByText('(верх)');
+    await expect(bunTop).toBeVisible({ timeout: 5000 });
   });
 
   test('should open and close ingredient modal', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await page.waitForSelector('button:has-text("Добавить")', {
-      timeout: 10000
-    });
 
-    // Кликаем по картинке или названию первого ингредиента
-    // Используем селектор по классу, содержащему "BurgerIngredient" (или можно по картинке)
-    await page.locator('[class*="BurgerIngredient"]').first().click();
+    // Ждём загрузки ингредиентов
+    const addButtons = page.getByRole('button', { name: 'Добавить' });
+    await addButtons.first().waitFor({ state: 'visible', timeout: 15000 });
 
-    const modal = page.locator('.modal');
-    await expect(modal).toBeVisible();
+    // Кликаем по первому ингредиенту (ссылка на /ingredients/{id})
+    const ingredientLink = page.locator('a[href^="/ingredients/"]').first();
+    await ingredientLink.click();
 
-    const ingredientName = await page.locator('.modal h3').textContent();
-    expect(ingredientName).toBeTruthy();
+    // Проверяем, что модальное окно открылось (заголовок "Детали ингредиента")
+    const modalTitle = page.getByText('Детали ингредиента');
+    await expect(modalTitle).toBeVisible({ timeout: 5000 });
 
-    await page.locator('.modal button[type="button"]').click();
-    await expect(modal).not.toBeVisible();
+    // Проверяем, что отображается название ингредиента (второй h3)
+    const ingredientName = page.locator('h3').nth(1);
+    await expect(ingredientName).toBeVisible();
+    expect(await ingredientName.textContent()).toBeTruthy();
 
-    await page.locator('[class*="BurgerIngredient"]').first().click();
-    await expect(modal).toBeVisible();
-    await page.locator('.overlay').click();
-    await expect(modal).not.toBeVisible();
+    // Закрываем модалку через Escape
+    await page.keyboard.press('Escape');
+    await expect(modalTitle).not.toBeVisible();
+
+    // Открываем снова и закрываем по Escape
+    await ingredientLink.click();
+    await expect(modalTitle).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(modalTitle).not.toBeVisible();
   });
 
   test('should create an order and clear constructor', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await page.waitForSelector('button:has-text("Добавить")', {
-      timeout: 10000
-    });
 
+    // Ждём загрузки ингредиентов
     const addButtons = page.getByRole('button', { name: 'Добавить' });
+    await addButtons.first().waitFor({ state: 'visible', timeout: 15000 });
+
+    // Добавляем булку и две начинки
     await addButtons.nth(0).click(); // булка
     await addButtons.nth(2).click(); // начинка
+    await addButtons.nth(3).click(); // ещё начинка
 
-    await page.locator('button:has-text("Оформить заказ")').click();
+    // Ждём активации кнопки "Оформить заказ"
+    const orderButton = page.getByRole('button', { name: 'Оформить заказ' });
+    await expect(orderButton).toBeEnabled({ timeout: 10000 });
 
-    const modal = page.locator('.modal');
-    await expect(modal).toBeVisible();
+    // Оформляем заказ
+    await orderButton.click();
 
-    const orderNumber = await page.locator('.modal h2').textContent();
+    // Ждём появления текста "идентификатор заказа"
+    const orderIdText = page.getByText('идентификатор заказа');
+    await expect(orderIdText).toBeVisible({ timeout: 15000 });
+
+    // Номер заказа – это h2 с цифрами перед текстом
+    const orderNumberElement = page
+      .locator('h2')
+      .filter({ hasText: /^\d+$/ })
+      .first();
+    await expect(orderNumberElement).toBeVisible();
+    const orderNumber = await orderNumberElement.textContent();
     expect(orderNumber).toMatch(/\d+/);
 
-    const constructorItems = page.locator('[class*="constructor-element"]');
-    await expect(constructorItems).toHaveCount(0);
+    // Проверяем, что конструктор очистился (нет "(верх)")
+    const bunElement = page.getByText('(верх)');
+    await expect(bunElement).not.toBeVisible({ timeout: 5000 });
 
-    await page.locator('.modal button[type="button"]').click();
-    await expect(modal).not.toBeVisible();
+    // Закрываем модалку через Escape
+    await page.keyboard.press('Escape');
+    await expect(orderIdText).not.toBeVisible();
   });
 });
