@@ -1,15 +1,18 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { TConstructorIngredient, TIngredient } from '@utils-types';
 import { generateId } from '../../utils/generate-id';
+import { getIngredients } from './actions';
 
 type TConstructorState = {
   bun: TConstructorIngredient | null;
   ingredients: TConstructorIngredient[];
+  isLoading: boolean;
 };
 
 const initialState: TConstructorState = {
   bun: null,
-  ingredients: []
+  ingredients: [],
+  isLoading: false
 };
 
 export const burgerConstructorSlice = createSlice({
@@ -49,7 +52,24 @@ export const burgerConstructorSlice = createSlice({
   selectors: {
     constructorItemsSelector: (state) => state,
     bunSelector: (state) => state.bun,
-    ingredientsSelector: (state) => state.ingredients
+    ingredientsSelector: (state) => state.ingredients,
+    areIngredientsLoading: (state) => state.isLoading
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(getIngredients.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(getIngredients.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.ingredients = action.payload.map((ing) => ({
+          ...ing,
+          id: generateId()
+        }));
+      })
+      .addCase(getIngredients.rejected, (state) => {
+        state.isLoading = false;
+      });
   }
 });
 
@@ -60,5 +80,9 @@ export const {
   clearConstructor
 } = burgerConstructorSlice.actions;
 
-export const { constructorItemsSelector, bunSelector, ingredientsSelector } =
-  burgerConstructorSlice.selectors;
+export const {
+  constructorItemsSelector,
+  bunSelector,
+  ingredientsSelector,
+  areIngredientsLoading
+} = burgerConstructorSlice.selectors;
