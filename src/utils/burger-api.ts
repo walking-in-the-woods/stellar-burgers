@@ -251,3 +251,19 @@ export const logoutApi = () =>
       token: localStorage.getItem('refreshToken')
     })
   }).then((res) => checkResponse<TServerResponse<{}>>(res));
+
+// Экспортируем объект api для удобного мокирования в тестах
+export const api = {
+  getIngredients: getIngredientsApi,
+  getFeeds: getFeedsApi,
+  getOrders: getOrdersApi,
+  orderBurger: orderBurgerApi,
+  getOrderByNumber: getOrderByNumberApi,
+  registerUser: registerUserApi,
+  loginUser: loginUserApi,
+  forgotPassword: forgotPasswordApi,
+  resetPassword: resetPasswordApi,
+  getUser: getUserApi,
+  updateUser: updateUserApi,
+  logout: logoutApi
+};
