@@ -17,3 +17,36 @@
 ## Важно:
 
 Для корректной работы запросов к серверу необходимо добавить переменную BURGER_API_URL в окружение. Сама ссылка находится в файле `.env.example`.
+
+## Команды для работы
+
+### Установка Playwright (если ещё не установлен)
+
+```bash
+npm install -D @playwright/test
+npx playwright install
+```
+
+### Генерация HAR-файлов (только один раз, либо при изменении API)
+
+```bash
+npm run test:e2e:record
+```
+
+или напрямую:
+
+```bash
+npx playwright test tests/record-har.spec.ts --headed
+```
+
+### Штатный запуск интеграционных тестов (после создания HAR)
+
+```bash
+npm run test:e2e
+```
+
+или с открытым браузером:
+
+```bash
+npm run test:e2e:headed
+```
