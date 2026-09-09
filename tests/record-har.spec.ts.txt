@@ -1,0 +1,96 @@
+import { test, expect } from '@playwright/test';
+
+/**
+ * Этот файл используется для генерации HAR-файлов с реальной авторизацией.
+ * Запустите его один раз командой:
+ *   npm run test:e2e:record
+ *
+ * После успешного создания файлов в папке tests/hars/ этот файл можно удалить
+ * или закомментировать, чтобы не запускать случайно.
+ */
+test.describe('Generate HAR files with real auth', () => {
+  test('record ingredients, user, order', async ({ page, context }) => {
+    test.setTimeout(60000);
+
+    // 1. Логин через API
+    const loginResponse = await page.request.post(
+      'https://norma.education-services.ru/api/auth/login',
+      {
+        data: {
+          email: 'as-test-user@test.com',
+          password: '123'
+        }
+      }
+    );
+
+    const loginData = await loginResponse.json();
+    console.log('Login response:', loginData);
+
+    if (!loginData.success) {
+      throw new Error(`Login failed: ${loginData.message || 'Unknown error'}`);
+    }
+
+    // 2. Устанавливаем токены
+    const accessToken = loginData.accessToken;
+    const refreshToken = loginData.refreshToken;
+
+    await context.addCookies([
+      {
+        name: 'accessToken',
+        value: accessToken,
+        domain: 'localhost',
+        path: '/'
+      }
+    ]);
+    await page.addInitScript((rt) => {
+      localStorage.setItem('refreshToken', rt);
+    }, refreshToken);
+
+    // 3. Включаем запись HAR
+    await page.routeFromHAR('./tests/hars/ingredients.har', {
+      url: '**/api/ingredients',
+      update: true
+    });
+    await page.routeFromHAR('./tests/hars/user.har', {
+      url: '**/api/auth/user',
+      update: true
+    });
+    await page.routeFromHAR('./tests/hars/order.har', {
+      url: '**/api/orders',
+      update: true
+    });
+
+    // 4. Открываем страницу
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    // 5. Ждём загрузки ингредиентов
+    await page.waitForSelector('button:has-text("Добавить")', {
+      timeout: 15000
+    });
+
+    // 6. Добавляем булку и ДВЕ начинки
+    const addButtons = page.getByRole('button', { name: 'Добавить' });
+    await addButtons.first().click(); // булка
+    await addButtons.nth(2).click(); // первая начинка
+    await addButtons.nth(3).click(); // вторая начинка
+
+    // 7. Ждём, пока кнопка "Оформить заказ" станет активной
+    const orderButton = page.locator('button:has-text("Оформить заказ")');
+    await expect(orderButton).toBeEnabled({ timeout: 10000 });
+
+    // 8. Оформляем заказ
+    await orderButton.click();
+
+    // 9. Ждём появления модального окна (просто по классу .modal)
+    await page.waitForSelector('.modal', {
+      state: 'visible',
+      timeout: 30000
+    });
+
+    // 10. Даём время на запись HAR (закрывать модалку не обязательно)
+    await page.waitForTimeout(3000);
+
+    console.log('✅ HAR files generated successfully!');
+  });
+});
